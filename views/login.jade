@@ -1,0 +1,12 @@
+extends layout
+block head
+    script(src="/javascripts/login.js")
+block body
+    form(name="loginForm", ng-controller="LoginCtrl", ng-submit="login()")
+      div(style='text-align:center')
+        input(type='text', name='username', ng-model="username", required, placeholder="username")
+      div(style='text-align:center')
+        input(type='password', name='password', ng-model="password", required, placeholder="password")
+      div(style='text-align:center')
+        input(type='submit', value='Login')
+
