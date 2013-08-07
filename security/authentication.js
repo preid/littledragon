@@ -27,7 +27,6 @@ exports.restrict = function restrict( req, res, next )
     }
     else
     {
-        req.session.error = 'Access denied';
-        res.redirect( '/login' );
+        res.send( 401 );
     }
 };

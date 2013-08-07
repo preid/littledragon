@@ -1,0 +1,24 @@
+div(class="pull-right")
+    a(href="/#/user") Create User
+
+table(class="table table-striped table-bordered")
+    tr
+        th Username
+        th Name
+        th Admin
+        th Facility Admin
+        th(colspan="2")
+    tr( ng-repeat="user in users")
+        td {{user.username}}
+        td {{user.name}}
+        td {{user.admin}}
+        td {{user.facilityAdmin}}
+        td(style="padding-right: 10px")
+            a(href="/#/edit/user/{{user._id}}") edit
+        td
+            a(href="/#/delete/user/{{user._id}}") delete
+
+
+
+
+

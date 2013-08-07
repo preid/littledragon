@@ -1,6 +1,5 @@
 var express = require( 'express' )
     , routes = require( './routes' )
-    //, rest = require( './routes/rest' )
     , http = require( 'http' )
     , path = require( 'path' )
     , models = require( './models/models' )
@@ -38,10 +37,10 @@ controller_files.forEach( function ( file )
 require( './routes/rest' )( app, auth, models );
 require( './routes/parents' )( app, auth, models );
 require( './routes/children' )( app, auth, models );
+require( './routes/users' )( app, auth, models );
 
 app.get( '/', routes.index );
 app.get( '/welcome', auth.restrict, routes.welcome );
-//app.get( '/users', user.list );
 app.get( '/login', login.index );
 app.post( '/login', login.login );
 

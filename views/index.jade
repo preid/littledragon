@@ -1,5 +1,29 @@
-extends layout
+doctype 5
+html( ng-app="littledragon" )
+    head
+        title= title
+        link(rel='stylesheet', href='/bootstrap/css/bootstrap.css')
+        link(rel='stylesheet', href='/stylesheets/style.css')
+        script(src='https://ajax.googleapis.com/ajax/libs/angularjs/1.1.1/angular.min.js')
+        script(src="/javascripts/ui-bootstrap-tpls-0.5.0.min.js")
+        script(src="/javascripts/controllers.js")
+        script(src="/javascripts/app.js")
+        script(src="/javascripts/directives.js")
+    body
+        div(class="navbar navbar-inverse navbar-fixed-top")
+            div(class="navbar-inner")
+                div(class="container")
+                    div(class="nav-collapse collapse", ng-controller="NavCtrl")
+                        ul(class="nav", ng-show="user.loggedIn")
+                            li(class="admin")
+                                a(href="/#/users") Users
+                            li(class="admin")
+                                a(href="/#/parents") Parents
+                            li(class="admin")
+                                a(href="/#/children") Children
 
-block content
-  h1= title
-  p Welcome to #{title}
+        div( class="container", style="padding-top:50px")
+            div( data-ng-bind="error", data-ng-show="error", class="alert alert-error")
+            div( ng-view )
+
+

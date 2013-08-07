@@ -1,0 +1,11 @@
+table
+    tr
+        th Username
+        th Name
+        th Children
+    tr( ng-repeat="parent in parents")
+        td {{parent._user.username}}
+        td {{parent._user.name}}
+        td {{parent._children.length}}
+
+

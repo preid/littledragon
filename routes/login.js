@@ -10,12 +10,13 @@ exports.login = function(req, res){
       {
         req.session.regenerate(function(){
             req.session.user = user;
-            res.redirect('welcome');
+            user.password = null;
+            res.send( user );
         });
       }
       else
       {
-          res.redirect('login');
+          res.send( 401 );
       }
   });
 };

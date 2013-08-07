@@ -3,7 +3,7 @@ module.exports = function ( app, auth, models )
     Object.getOwnPropertyNames( models ).forEach(
         function ( modelName )
         {
-            app.get( "/" + modelName, auth.restrict, function ( req, res )
+            app.get( "/rest/" + modelName, auth.restrict, function ( req, res )
             {
                 models[modelName].find( {}, function ( err, data )
                 {
@@ -11,7 +11,7 @@ module.exports = function ( app, auth, models )
                 } );
             } );
 
-            app.get( "/" + modelName + "/:id", auth.restrict, function ( req, res )
+            app.get( "/rest/" + modelName + "/:id", auth.restrict, function ( req, res )
             {
                 models[modelName].findById( req.params.id,
                                             function ( err, data )
@@ -20,7 +20,7 @@ module.exports = function ( app, auth, models )
                                             } );
             } );
 
-            app.del( "/" + modelName + "/:id", auth.restrict, function ( req, res )
+            app.del( "/rest/" + modelName + "/:id", auth.restrict, function ( req, res )
             {
                 models[modelName].remove( { _id: req.params.id },
                                           function ( err, data )
@@ -29,7 +29,7 @@ module.exports = function ( app, auth, models )
                                           } );
             } );
 
-            app.post( "/" + modelName, auth.restrict, function ( req, res )
+            app.post( "/rest/" + modelName, auth.restrict, function ( req, res )
             {
                 new models[modelName]( req.body ).save(
                     function ( err, data )
@@ -41,7 +41,7 @@ module.exports = function ( app, auth, models )
                     } );
             } );
 
-            app.put( "/" + modelName + "/:id", auth.restrict, function ( req, res )
+            app.put( "/rest/" + modelName + "/:id", auth.restrict, function ( req, res )
             {
                 models[modelName].update( {_id: req.params.id}, req.body, {multi: false},
                                           function ( err, data )

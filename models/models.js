@@ -9,7 +9,9 @@ var model = function(name, schema){
 exports.users = model( 'users', {
     name: {type: String, default: '', trim: true},
     username: {type: String, default: '', trim: true},
-    password: {type: String, default: '', trim: true}} );
+    password: {type: String, default: '', trim: true},
+    admin: {type: Boolean, default: false },
+    facilityAdmin: {type: Boolean, default: false}} );
 
 exports.parents = model( 'parents', {
     _user: {type: mongoose.Schema.ObjectId, ref: 'users'},
