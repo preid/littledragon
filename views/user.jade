@@ -15,6 +15,6 @@ form(name="userForm", ng-submit="submit()")
     label( class="checkbox")
         input(ng-model="user.facilityAdmin", type="checkbox", name="facilityAdmin" )
         span Facility Admin
-
-    a(href="/#/users", class="btn") Cancel
-    button(type="submit", class="btn btn-primary"){{buttonText}}
+    div(class="btn-toolbar")
+        a(href="/#/users", class="btn") Cancel
+        button(type="submit", class="btn btn-primary"){{buttonText}}

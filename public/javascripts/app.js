@@ -16,13 +16,11 @@ angular.module( 'littledragon', ['ui.bootstrap'] )
                   {
                       function success( response )
                       {
-                          $rootScope.error = null;
                           return response;
                       }
 
                       function error( response )
                       {
-                          $rootScope.error = null;
                           if ( response.status === 401 )
                           {
                               $location.path( '/login' );
@@ -39,23 +37,27 @@ angular.module( 'littledragon', ['ui.bootstrap'] )
                           return promise.then( success, error );
                       }
                   }];
-                  $httpProvider.responseInterceptors.push(interceptor);
+                  $httpProvider.responseInterceptors.push( interceptor );
               }] )
     .run( ['$rootScope', '$location', '$http',
            function ( $rootScope, $location, $http )
            {
-               $rootScope.user = {user:null, loggedIn:false};
-               $http.get("/currentUser" ).success(
-                   function(user){
-                     if( null != user._id )
-                     {
-                         $rootScope.user.user = user;
-                         $rootScope.user.loggedIn = true;
-                     }
+               $rootScope.user = {user: null, loggedIn: false};
+               $rootScope.flash = {};
+               $http.get( "/currentUser" ).success(
+                   function ( user )
+                   {
+                       if ( null != user._id )
+                       {
+                           $rootScope.user.user = user;
+                           $rootScope.user.loggedIn = true;
+                       }
                    } );
                $rootScope.$on( "$routeChangeStart", function ( event, next, current )
                {
-                   //$rootScope.error = null;
-                   //$location.path( '/login' );
+                   $rootScope.flash.err = null;
+                   $rootScope.flash.warn = null;
+                   $rootScope.flash.okay = null;
+                   $rootScope.flash.info = null;
                } );
            }] );

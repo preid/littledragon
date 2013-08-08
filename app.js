@@ -29,11 +29,6 @@ if ( 'development' == app.get( 'env' ) )
     app.use( express.errorHandler() );
 }
 
-/*var controllers_path = __dirname + '/app/routes', controller_files = fs.readdirSync( controllers_path );
-controller_files.forEach( function ( file )
-                          {
-                              require( controllers_path + '/' + file )( app )
-                          } );*/
 require( './routes/rest' )( app, auth, models );
 require( './routes/parents' )( app, auth, models );
 require( './routes/children' )( app, auth, models );

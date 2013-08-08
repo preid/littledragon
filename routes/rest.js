@@ -43,6 +43,7 @@ module.exports = function ( app, auth, models )
 
             app.put( "/rest/" + modelName + "/:id", auth.restrict, function ( req, res )
             {
+                delete req.body._id;
                 models[modelName].update( {_id: req.params.id}, req.body, {multi: false},
                                           function ( err, data )
                                           {

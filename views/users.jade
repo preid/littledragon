@@ -16,7 +16,7 @@ table(class="table table-striped table-bordered")
         td(style="padding-right: 10px")
             a(href="/#/edit/user/{{user._id}}") edit
         td
-            a(href="/#/delete/user/{{user._id}}") delete
+            a(href="", ng-click="delete(user._id)") delete
 
 
 
