@@ -1,4 +1,4 @@
-function LoginCtrl( $rootScope, $scope, $http, $location )
+function LoginCtrl( $rootScope, $scope, $http, $location, flash )
 {
     $scope.login = function ()
     {
@@ -13,7 +13,7 @@ function LoginCtrl( $rootScope, $scope, $http, $location )
             .error(
             function ()
             {
-                $rootScope.flash.err = "Login failed";
+                flash.now().err = "Login failed";
             }
         );
     };
@@ -24,9 +24,9 @@ function NavCtrl( $rootScope, $scope )
     $scope.user = $rootScope.user
 }
 
-function UsersCtrl( $rootScope, $scope, $http )
+function UsersCtrl( $rootScope, $scope, $http, flash )
 {
-    var load = function()
+    var load = function ()
     {
         $http.get( "/rest/users" )
             .success(
@@ -45,17 +45,17 @@ function UsersCtrl( $rootScope, $scope, $http )
             function ()
             {
                 load();
-                $rootScope.flash.okay = "User deleted";
+                flash.now().okay = "User deleted";
             } )
             .error(
             function ( data, code )
             {
-                $rootScope.flash.err = "Failed to delete User: " + data + " [code:  " + code + "]";
+                flash.now().err = "Failed to delete User: " + data + " [code:  " + code + "]";
             } );
     };
 }
 
-function UserCtrl( $rootScope, $scope, $http, $location, $routeParams )
+function UserCtrl( $rootScope, $scope, $http, $location, $routeParams, flash )
 {
     $scope.buttonText = "Create";
     if ( null != $routeParams.id )
@@ -68,11 +68,11 @@ function UserCtrl( $rootScope, $scope, $http, $location, $routeParams )
             }
         );
         $scope.buttonText = "Update";
-        $rootScope.flash.info = "Update User details";
+        flash.add().info = "Update User details";
     }
     else
     {
-        $rootScope.flash.info = "Create a new User"
+        flash.add().info = "Create a new User"
     }
 
     $scope.submit = function ()
@@ -84,12 +84,14 @@ function UserCtrl( $rootScope, $scope, $http, $location, $routeParams )
                 function ()
                 {
                     $location.path( "/users" );
-                    $rootScope.flash.okay = "User updated";
+                    flash.add().okay = "User updated";
+                    $scope.user = null;
+                    $scope.userForm.$setPristine();
                 } )
                 .error(
                 function ( data, code )
                 {
-                    $rootScope.flash.err = "Failed to update User: " + data + " [code:  " + code + "]";
+                    flash.now().err = "Failed to update User: " + data + " [code:  " + code + "]";
                 } );
         }
         else
@@ -99,17 +101,16 @@ function UserCtrl( $rootScope, $scope, $http, $location, $routeParams )
                 function ()
                 {
                     $location.path( "/users" );
-                    $rootScope.flash.okay = "User created";
+                    flash.add().okay = "User created";
+                    $scope.user = null;
+                    $scope.userForm.$setPristine();
                 } )
                 .error(
                 function ( data, code )
                 {
-                    $rootScope.flash.err = "Failed to create User: " + data + " [code:  " + code + "]";
+                    flash.now().err = "Failed to create User: " + data + " [code:  " + code + "]";
                 } );
         }
-
-        $scope.user = null;
-        $scope.userForm.$setPristine();
     };
 }
 

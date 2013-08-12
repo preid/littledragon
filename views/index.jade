@@ -23,10 +23,11 @@ html( ng-app="littledragon" )
                                 a(href="/#/children") Children
 
         div( class="container", style="padding-top:50px")
-            div( data-ng-bind="flash.err", data-ng-show="flash.err", class="alert alert-error")
-            div( data-ng-bind="flash.warn", data-ng-show="flash.warn", class="alert alert-block")
-            div( data-ng-bind="flash.okay", data-ng-show="flash.okay", class="alert alert-success")
-            div( data-ng-bind="flash.info", data-ng-show="flash.info", class="alert alert-info")
+            div( data-ng-bind="flash.info()", data-ng-show="flash.info()", class="alert alert-info")
+            div( data-ng-bind="flash.okay()", data-ng-show="flash.okay()", class="alert alert-success")
+            div( data-ng-bind="flash.warn()", data-ng-show="flash.warn()", class="alert alert-block")
+            div( data-ng-bind="flash.err()", data-ng-show="flash.err()", class="alert alert-error")
+
             div( ng-view )
 
 

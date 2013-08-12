@@ -5,7 +5,7 @@ var express = require( 'express' )
     , models = require( './models/models' )
     , auth = require( './security/authentication.js' )
     , login = require( './routes/login' )
-    , fs = require('fs');
+    , fs = require( 'fs' );
 
 var app = express();
 
@@ -29,10 +29,25 @@ if ( 'development' == app.get( 'env' ) )
     app.use( express.errorHandler() );
 }
 
-require( './routes/rest' )( app, auth, models );
-require( './routes/parents' )( app, auth, models );
-require( './routes/children' )( app, auth, models );
-require( './routes/users' )( app, auth, models );
+var render = function ( req, res )
+{
+    return function ( err, data )
+    {
+        if ( null != err )
+        {
+            res.status( 500 ).send( err.message )
+        }
+        else
+        {
+            res.json( data );
+        }
+    };
+}
+
+require( './routes/rest' )( app, auth, models, render );
+require( './routes/parents' )( app, auth, models, render );
+require( './routes/children' )( app, auth, models, render );
+require( './routes/users' )( app, auth, models, render );
 
 app.get( '/', routes.index );
 app.get( '/welcome', auth.restrict, routes.welcome );
