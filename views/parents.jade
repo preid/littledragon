@@ -1,11 +1,18 @@
-table
+div(class="pull-right")
+    a(href="/#/parent") Create Parent
+table(class="table table-striped table-bordered")
     tr
         th Username
         th Name
         th Children
+        th(colspan="2")
     tr( ng-repeat="parent in parents")
         td {{parent._user.username}}
         td {{parent._user.name}}
         td {{parent._children.length}}
+        td(style="padding-right: 10px")
+            a(href="/#/edit/parent/{{parent._id}}") edit
+        td
+            a(href="", ng-click="delete(parent._id)") delete
 
 

@@ -9,6 +9,8 @@ app.config( ['$routeProvider', '$httpProvider',
                      when( '/user', {templateUrl: 'user', controller: UserCtrl} ).
                      when( '/edit/user/:id', {templateUrl: 'user', controller: UserCtrl} ).
                      when( '/parents', {templateUrl: 'parents', controller: ParentsCtrl} ).
+                     when( '/parent', {templateUrl: 'parent', controller: ParentCtrl} ).
+                     when( '/edit/parent/:id', {templateUrl: 'parent', controller: ParentCtrl} ).
                      when( '/children', {templateUrl: 'children', controller: ChildrenCtrl} ).
                      otherwise( {redirectTo: '/login'} );
 

@@ -1,0 +1,13 @@
+form(name="parentForm", ng-submit="submit()")
+    label Username
+    input(type="text", ng-model="parent._user.username", name="uname", placeholder="required", required )
+
+    label Password
+    input(ng-model="parent._user.password", type="password", name="pswd", placeholder="required", required )
+
+    label Name
+    input(type="text", ng-model="parent._user.name", name="name", placeholder="required", required )
+
+    div(class="btn-toolbar")
+        a(href="/#/parents", class="btn") Cancel
+        button(type="submit", class="btn btn-primary"){{buttonText}}

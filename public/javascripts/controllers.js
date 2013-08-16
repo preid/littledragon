@@ -116,13 +116,92 @@ function UserCtrl( $rootScope, $scope, $http, $location, $routeParams, flash )
 
 function ParentsCtrl( $scope, $http )
 {
-    $http.get( "/rest/parents_user" )
-        .success(
-        function ( parents )
+    var load = function ()
+    {
+        $http.get( "/parents/user" )
+            .success(
+            function ( parents )
+            {
+                $scope.parents = parents;
+            }
+        );
+    };
+    load();
+
+    $scope.delete = function ( id )
+    {
+        $http.delete( "/rest/parent/" + id )
+            .success(
+            function ()
+            {
+                load();
+                flash.now().okay = "Parent deleted";
+            } )
+            .error(
+            function ( data, code )
+            {
+                flash.now().err = "Failed to delete Parent: " + data + " [code:  " + code + "]";
+            } );
+    };
+}
+
+function ParentCtrl( $rootScope, $scope, $http, $location, $routeParams, flash )
+{
+    $scope.buttonText = "Create";
+    if ( null != $routeParams.id )
+    {
+        $http.get( "/parents/" + $routeParams.id + "/user" )
+            .success(
+            function ( parent )
+            {
+                $scope.parent = parent;
+            }
+        );
+        $scope.buttonText = "Update";
+        flash.add().info = "Update Parent details";
+    }
+    else
+    {
+        flash.add().info = "Create a new Parent"
+    }
+
+    $scope.submit = function ()
+    {
+        if ( null != $scope.parent._id )
         {
-            $scope.parents = parents;
+            $http.put( "/parents/" + $scope.parent._id + "/user", $scope.parent )
+                .success(
+                function ()
+                {
+                    $location.path( "/parents" );
+                    flash.add().okay = "Parent updated";
+                    $scope.parent = null;
+                    $scope.parentForm.$setPristine();
+                } )
+                .error(
+                function ( data, code )
+                {
+                    flash.now().err = "Failed to update Parent: " + data + " [code:  " + code + "]";
+                } );
         }
-    );
+        else
+        {
+            $http.post( "/parents/user", $scope.parent )
+                .success(
+                function ()
+                {
+                    $location.path( "/parents" );
+                    flash.add().okay = "Parent created";
+                    $scope.parent = null;
+                    $scope.parentForm.$setPristine();
+                } )
+                .error(
+                function ( data, code )
+                {
+                    flash.now().err = "Failed to create Parent: " + data + " [code:  " + code + "]";
+                } );
+        }
+    };
 }
 
 function ChildrenCtrl( $scope, $http )
