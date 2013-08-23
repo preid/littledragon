@@ -2,23 +2,16 @@ var express = require( 'express' )
     , routes = require( './routes' )
     , http = require( 'http' )
     , path = require( 'path' )
-    , models = require( './models/models' )
+    //, models = require( './models/models' )
+    , models = require( './models/sql_models.js' )
     , auth = require( './security/authentication.js' )
     , login = require( './routes/login' )
-    , fs = require( 'fs' )
-    , Sequelize = require("sequelize");
+    , fs = require( 'fs' );
 
 var app = express();
-var sequelize = new Sequelize('littledragon', 'littledragon_app', 'letmein', {port: 5432, dialect: 'postgres', omitNull: true});
 
-var User = sequelize.define('User', {
-  username: Sequelize.STRING,
-  name: Sequelize.STRING
-});
 
-//sequelize.sync();
 
-User.create({username: "peter", name:"Peter Reid"} ).success( function( user ) { console.log( user ) });
 // all environments
 app.set( 'port', process.env.PORT || 3001 );
 app.set( 'views', __dirname + '/views' );
@@ -55,9 +48,9 @@ var render = function ( req, res )
 };
 
 require( './routes/rest' )( app, auth, models, render );
-require( './routes/parents' )( app, auth, models, render );
-require( './routes/children' )( app, auth, models, render );
 require( './routes/users' )( app, auth, models, render );
+//require( './routes/parents' )( app, auth, models, render );
+//require( './routes/children' )( app, auth, models, render );
 
 app.get( '/', routes.index );
 app.get( '/welcome', auth.restrict, routes.welcome );

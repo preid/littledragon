@@ -1,14 +1,15 @@
-var models = require( '../models/models' );
+var models = require( '../models/sql_models' );
+var bcrypt = require('bcrypt');
 
 exports.authenticate = function ( username, password, callback )
 {
-    models.users.findOne( {username: username}, function ( err, user )
+    models.User.find( {where: {username: username}} ).success( function ( user )
     {
         if ( !user )
         {
             callback( new Error( 'Invalid username' ) );
         }
-        else if ( password != user.password )
+        else if ( !bcrypt.compareSync( password, user.password ) )
         {
             callback( new Error( 'Invalid password' ) );
         }

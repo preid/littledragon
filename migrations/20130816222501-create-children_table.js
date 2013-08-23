@@ -8,7 +8,7 @@ module.exports = {
                 parent_id: { type: DataTypes.INTEGER, references: "Parents", referencesKey: "id", allowNull: false },
                 firstName: {type: DataTypes.STRING( 100 ), allowNull: false},
                 lastName: {type: DataTypes.STRING( 100 ), allowNull: false},
-                nickname: {type: DataTypes.STRING( 100 ), allowNull: false},
+                nickname: {type: DataTypes.STRING( 100 ), allowNull: true},
                 facility_id: {type: DataTypes.INTEGER, references: "Facilities", referencesKey: "id", allowNull: false },
                 createdAt: {type: DataTypes.DATE, allowNull: false},
                 updatedAt: {type: DataTypes.DATE, allowNull: false}
