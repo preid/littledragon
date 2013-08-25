@@ -1,0 +1,7 @@
+form(name="facilityForm", ng-submit="submit()")
+    label Name
+    input(type="text", ng-model="facility.name", name="name", placeholder="required", required )
+
+    div(class="btn-toolbar")
+        a(href="/#/facilities", class="btn") Cancel
+        button(type="submit", class="btn btn-primary"){{buttonText}}

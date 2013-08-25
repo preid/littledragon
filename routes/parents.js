@@ -31,15 +31,15 @@ module.exports = function ( app, auth, models, render )
     app.put( "/parents/:id/user", auth.restrict,
              function( req, res )
              {
-                 var userId = req.body._user._id;
-                 delete req.body._user._id;
-                 models.users.update( {_id: userId}, req.body._user, {multi: false}, render( req, res ) );
+                 var userId = req.body.user.id;
+                 delete req.body.user.id;
+                 models.users.update( {id: userId}, req.body.user, {multi: false}, render( req, res ) );
              });
 
     app.post( "/parents/user", auth.restrict,
               function ( req, res )
               {
-                  new models.users( req.body._user ).save(
+                  new models.users( req.body.user ).save(
                       function ( err, data )
                       {
                           if ( null != err )
@@ -49,7 +49,7 @@ module.exports = function ( app, auth, models, render )
                           else
                           {
 
-                              new models.parents( {_user: data._id } ).save( render( req, res ) );
+                              new models.parents( {user: data.id } ).save( render( req, res ) );
                           }
                       } );
               } );

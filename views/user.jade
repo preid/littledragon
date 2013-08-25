@@ -5,16 +5,25 @@ form(name="userForm", ng-submit="submit()")
     label Password
     input(ng-model="user.password", type="password", name="pswd", placeholder="required", required )
 
-    label Name
-    input(type="text", ng-model="user.name", name="name", placeholder="required", required )
+    label Email
+    input(type="text", ng-model="user.email", name="email", placeholder="required", required )
 
-    label( class="checkbox")
+    label First Name
+    input(type="text", ng-model="user.firstName", name="firstName", placeholder="required", required )
+
+    label Last Name
+    input(type="text", ng-model="user.lastName", name="lastName", placeholder="required", required )
+
+    label Facility
+    select( ng-model="user.FacilityId", ng-options="f.id as f.name for f in facilities", name="facility", placeholder="required", required )
+
+    label.checkbox
         input(ng-model="user.admin", type="checkbox", name="admin" )
         span Admin
 
-    label( class="checkbox")
+    label.checkbox
         input(ng-model="user.facilityAdmin", type="checkbox", name="facilityAdmin" )
         span Facility Admin
-    div(class="btn-toolbar")
-        a(href="/#/users", class="btn") Cancel
-        button(type="submit", class="btn btn-primary"){{buttonText}}
+    .btn-toolbar
+        a.btn(href="/#/users") Cancel
+        button.btn.btn-primary(type="submit"){{buttonText}}

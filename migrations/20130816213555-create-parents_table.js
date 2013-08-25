@@ -5,7 +5,7 @@ module.exports = {
             'Parents',
             {
                 id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-                user_id: { type: DataTypes.INTEGER, references: "Users", referencesKey: "id", allowNull: false },
+                UserId: { type: DataTypes.INTEGER, references: "Users", referencesKey: "id", allowNull: false },
                 createdAt: {type: DataTypes.DATE, allowNull: false},
                 updatedAt: {type: DataTypes.DATE, allowNull: false}
             }

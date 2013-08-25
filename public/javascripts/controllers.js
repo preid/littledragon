@@ -28,7 +28,7 @@ function UsersCtrl( $rootScope, $scope, $http, flash )
 {
     var load = function ()
     {
-        $http.get( "/rest/users" )
+        $http.get( "/users/facility" )
             .success(
             function ( users )
             {
@@ -58,6 +58,14 @@ function UsersCtrl( $rootScope, $scope, $http, flash )
 function UserCtrl( $rootScope, $scope, $http, $location, $routeParams, flash )
 {
     $scope.buttonText = "Create";
+    $http.get( "/rest/facilities" )
+        .success(
+        function ( facilities )
+        {
+            $scope.facilities = facilities;
+        }
+    );
+
     if ( null != $routeParams.id )
     {
         $http.get( "/rest/users/" + $routeParams.id )
@@ -77,9 +85,9 @@ function UserCtrl( $rootScope, $scope, $http, $location, $routeParams, flash )
 
     $scope.submit = function ()
     {
-        if ( null != $scope.user._id )
+        if ( null != $scope.user.id )
         {
-            $http.put( "/rest/users/" + $scope.user._id, $scope.user )
+            $http.put( "/rest/users/" + $scope.user.id, $scope.user )
                 .success(
                 function ()
                 {
@@ -167,9 +175,9 @@ function ParentCtrl( $rootScope, $scope, $http, $location, $routeParams, flash )
 
     $scope.submit = function ()
     {
-        if ( null != $scope.parent._id )
+        if ( null != $scope.parent.id )
         {
-            $http.put( "/parents/" + $scope.parent._id + "/user", $scope.parent )
+            $http.put( "/parents/" + $scope.parent.id + "/user", $scope.parent )
                 .success(
                 function ()
                 {
@@ -199,6 +207,97 @@ function ParentCtrl( $rootScope, $scope, $http, $location, $routeParams, flash )
                 function ( data, code )
                 {
                     flash.now().err = "Failed to create Parent: " + data + " [code:  " + code + "]";
+                } );
+        }
+    };
+}
+
+function FacilitiesCtrl( $scope, $http )
+{
+    var load = function ()
+    {
+        $http.get( "/rest/facilities" )
+            .success(
+            function ( facilities )
+            {
+                $scope.facilities = facilities;
+            }
+        );
+    };
+    load();
+
+    $scope.delete = function ( id )
+    {
+        $http.delete( "/rest/facility/" + id )
+            .success(
+            function ()
+            {
+                load();
+                flash.now().okay = "Facility deleted";
+            } )
+            .error(
+            function ( data, code )
+            {
+                flash.now().err = "Failed to delete Facility: " + data + " [code:  " + code + "]";
+            } );
+    };
+}
+
+
+function FacilityCtrl( $rootScope, $scope, $http, $location, $routeParams, flash )
+{
+    $scope.buttonText = "Create";
+    if ( null != $routeParams.id )
+    {
+        $http.get( "/rest/facilities/" + $routeParams.id )
+            .success(
+            function ( facility )
+            {
+                $scope.facility = facility;
+            }
+        );
+        $scope.buttonText = "Update";
+        flash.add().info = "Update Facility details";
+    }
+    else
+    {
+        flash.add().info = "Create a new Facility"
+    }
+
+    $scope.submit = function ()
+    {
+        if ( null != $scope.facility.id )
+        {
+            $http.put( "/rest/facilities/" + $scope.facility.id, $scope.facility )
+                .success(
+                function ()
+                {
+                    $location.path( "/facilities" );
+                    flash.add().okay = "Facility updated";
+                    $scope.facility = null;
+                    $scope.facilityForm.$setPristine();
+                } )
+                .error(
+                function ( data, code )
+                {
+                    flash.now().err = "Failed to update Facility: " + data + " [code:  " + code + "]";
+                } );
+        }
+        else
+        {
+            $http.post( "/rest/facilities", $scope.facility )
+                .success(
+                function ()
+                {
+                    $location.path( "/facilities" );
+                    flash.add().okay = "Facility created";
+                    $scope.facility = null;
+                    $scope.facilityForm.$setPristine();
+                } )
+                .error(
+                function ( data, code )
+                {
+                    flash.now().err = "Failed to create Facility: " + data + " [code:  " + code + "]";
                 } );
         }
     };

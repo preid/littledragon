@@ -1,0 +1,14 @@
+.pull-right
+    a(href="/#/facility") Create Facility
+table.table.table-striped.table-bordered
+    tr
+        th Name
+        th(colspan="2")
+    tr( ng-repeat="facility in facilities")
+        td {{facility.name}}
+        td(style="padding-right: 10px")
+            a(href="/#/edit/facility/{{facility.id}}") edit
+        td
+            a(href="", ng-click="delete(facility.id)") delete
+
+

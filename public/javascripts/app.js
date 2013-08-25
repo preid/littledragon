@@ -11,6 +11,9 @@ app.config( ['$routeProvider', '$httpProvider',
                      when( '/parents', {templateUrl: 'parents', controller: ParentsCtrl} ).
                      when( '/parent', {templateUrl: 'parent', controller: ParentCtrl} ).
                      when( '/edit/parent/:id', {templateUrl: 'parent', controller: ParentCtrl} ).
+                     when( '/facilities', {templateUrl: 'facilities', controller: FacilitiesCtrl} ).
+                     when( '/facility', {templateUrl: 'facility', controller: FacilityCtrl} ).
+                     when( '/edit/facility/:id', {templateUrl: 'facility', controller: FacilityCtrl} ).
                      when( '/children', {templateUrl: 'children', controller: ChildrenCtrl} ).
                      otherwise( {redirectTo: '/login'} );
 
@@ -48,7 +51,7 @@ app.config( ['$routeProvider', '$httpProvider',
                $http.get( "/currentUser" ).success(
                    function ( user )
                    {
-                       if ( null != user._id )
+                       if ( null != user.id )
                        {
                            $rootScope.user.user = user;
                            $rootScope.user.loggedIn = true;
