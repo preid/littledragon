@@ -25,16 +25,22 @@ exports.User = user;
 facility.hasMany(user);
 user.belongsTo(facility);
 
-exports.Parent = sequelize.define( 'Parent', {
+var parent = sequelize.define( 'Parent', {
     id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
     UserId: { type: Sequelize.INTEGER, references: "Users", referencesKey: "id", allowNull: false }
 } );
+exports.Parent = parent;
 
-exports.Child = sequelize.define( 'Child', {
+parent.belongsTo(user);
+
+var child = sequelize.define( 'Child', {
     id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
-    parent_id: { type: Sequelize.INTEGER, references: "Parents", referencesKey: "id", allowNull: false },
     firstName: {type: Sequelize.STRING( 100 ), allowNull: false},
     lastName: {type: Sequelize.STRING( 100 ), allowNull: false},
     nickname: {type: Sequelize.STRING( 100 ), allowNull: false},
     FacilityId: {type: Sequelize.INTEGER, references: "Facilities", referencesKey: "id", allowNull: false }
 }, {tableName: "Children"} );
+exports.Child = child;
+
+child.hasMany(parent, {joinTableName: 'ParentsChildren'});
+parent.hasMany(child, {joinTableName: 'ParentsChildren'});

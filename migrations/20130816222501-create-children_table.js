@@ -5,7 +5,6 @@ module.exports = {
             'Children',
             {
                 id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-                ParentId: { type: DataTypes.INTEGER, references: "Parents", referencesKey: "id", allowNull: false },
                 firstName: {type: DataTypes.STRING( 100 ), allowNull: false},
                 lastName: {type: DataTypes.STRING( 100 ), allowNull: false},
                 nickname: {type: DataTypes.STRING( 100 ), allowNull: true},

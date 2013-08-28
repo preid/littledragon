@@ -6,8 +6,8 @@ function LoginCtrl( $rootScope, $scope, $http, $location, flash )
             .success(
             function ( data )
             {
-                $rootScope.user.user = data;
-                $rootScope.user.loggedIn = true;
+                $rootScope.currentUser.user = data;
+                $rootScope.currentUser.loggedIn = true;
                 $location.path( "/welcome" )
             } )
             .error(
@@ -21,7 +21,7 @@ function LoginCtrl( $rootScope, $scope, $http, $location, flash )
 
 function NavCtrl( $rootScope, $scope )
 {
-    $scope.user = $rootScope.user
+    $scope.user = $rootScope.currentUser
 }
 
 function UsersCtrl( $rootScope, $scope, $http, flash )
@@ -55,9 +55,8 @@ function UsersCtrl( $rootScope, $scope, $http, flash )
     };
 }
 
-function UserCtrl( $rootScope, $scope, $http, $location, $routeParams, flash )
+function loadFacilities( $http, $scope )
 {
-    $scope.buttonText = "Create";
     $http.get( "/rest/facilities" )
         .success(
         function ( facilities )
@@ -65,6 +64,11 @@ function UserCtrl( $rootScope, $scope, $http, $location, $routeParams, flash )
             $scope.facilities = facilities;
         }
     );
+}
+function UserCtrl( $rootScope, $scope, $http, $location, $routeParams, flash )
+{
+    loadFacilities( $http, $scope );
+    $scope.buttonText = "Create";
 
     if ( null != $routeParams.id )
     {
@@ -155,7 +159,9 @@ function ParentsCtrl( $scope, $http )
 
 function ParentCtrl( $rootScope, $scope, $http, $location, $routeParams, flash )
 {
+    loadFacilities( $http, $scope );
     $scope.buttonText = "Create";
+
     if ( null != $routeParams.id )
     {
         $http.get( "/parents/" + $routeParams.id + "/user" )
@@ -163,6 +169,7 @@ function ParentCtrl( $rootScope, $scope, $http, $location, $routeParams, flash )
             function ( parent )
             {
                 $scope.parent = parent;
+                $scope.user = parent.user;
             }
         );
         $scope.buttonText = "Update";
@@ -170,6 +177,7 @@ function ParentCtrl( $rootScope, $scope, $http, $location, $routeParams, flash )
     }
     else
     {
+        $scope.parent = {};
         flash.add().info = "Create a new Parent"
     }
 
@@ -184,7 +192,8 @@ function ParentCtrl( $rootScope, $scope, $http, $location, $routeParams, flash )
                     $location.path( "/parents" );
                     flash.add().okay = "Parent updated";
                     $scope.parent = null;
-                    $scope.parentForm.$setPristine();
+                    $scope.user = null;
+                    $scope.userForm.$setPristine();
                 } )
                 .error(
                 function ( data, code )
@@ -194,6 +203,7 @@ function ParentCtrl( $rootScope, $scope, $http, $location, $routeParams, flash )
         }
         else
         {
+            $scope.parent.user = $scope.user;
             $http.post( "/parents/user", $scope.parent )
                 .success(
                 function ()
@@ -201,7 +211,8 @@ function ParentCtrl( $rootScope, $scope, $http, $location, $routeParams, flash )
                     $location.path( "/parents" );
                     flash.add().okay = "Parent created";
                     $scope.parent = null;
-                    $scope.parentForm.$setPristine();
+                    $scope.user = null;
+                    $scope.userForm.$setPristine();
                 } )
                 .error(
                 function ( data, code )

@@ -9,8 +9,8 @@ app.config( ['$routeProvider', '$httpProvider',
                      when( '/user', {templateUrl: 'user', controller: UserCtrl} ).
                      when( '/edit/user/:id', {templateUrl: 'user', controller: UserCtrl} ).
                      when( '/parents', {templateUrl: 'parents', controller: ParentsCtrl} ).
-                     when( '/parent', {templateUrl: 'parent', controller: ParentCtrl} ).
-                     when( '/edit/parent/:id', {templateUrl: 'parent', controller: ParentCtrl} ).
+                     when( '/parent', {templateUrl: 'user', controller: ParentCtrl} ).
+                     when( '/edit/parent/:id', {templateUrl: 'user', controller: ParentCtrl} ).
                      when( '/facilities', {templateUrl: 'facilities', controller: FacilitiesCtrl} ).
                      when( '/facility', {templateUrl: 'facility', controller: FacilityCtrl} ).
                      when( '/edit/facility/:id', {templateUrl: 'facility', controller: FacilityCtrl} ).
@@ -47,14 +47,14 @@ app.config( ['$routeProvider', '$httpProvider',
     .run( ['$rootScope', '$location', '$http',
            function ( $rootScope, $location, $http )
            {
-               $rootScope.user = {user: null, loggedIn: false};
+               $rootScope.currentUser = {user: null, loggedIn: false};
                $http.get( "/currentUser" ).success(
                    function ( user )
                    {
                        if ( null != user.id )
                        {
-                           $rootScope.user.user = user;
-                           $rootScope.user.loggedIn = true;
+                           $rootScope.currentUser.user = user;
+                           $rootScope.currentUser.loggedIn = true;
                        }
                    } );
            }] );

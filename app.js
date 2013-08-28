@@ -50,7 +50,7 @@ var render = function ( req, res )
 require( './routes/rest' )( app, auth, models, render );
 require( './routes/users' )( app, auth, models, render );
 require( './routes/facilities' )( app, auth, models, render );
-//require( './routes/parents' )( app, auth, models, render );
+require( './routes/parents' )( app, auth, models, render );
 //require( './routes/children' )( app, auth, models, render );
 
 app.get( '/', routes.index );

@@ -1,0 +1,19 @@
+form(name="childForm", ng-submit="submit()")
+    label First Name
+    input(type="text", ng-model="child.firstName", name="firstName", placeholder="required", required )
+
+    label Last Name
+    input(type="text", ng-model="child.lastName", name="lastName", placeholder="required", required )
+
+    label Nickname
+    input(type="text", ng-model="child.nickname", name="nickname", placeholder="optional" )
+
+    label Facility
+    select( ng-model="child.FacilityId", ng-options="f.id as f.name for f in facilities", name="facility", required )
+
+    label Parents
+    select( ng-model="child.FacilityId", ng-options="p.id as p.firstName + ' ' + p.lastName for f in parents", name="facility", multiple, ng-multiple="true" )
+
+    div(class="btn-toolbar")
+        a(href="/#/children", class="btn") Cancel
+        button(type="submit", class="btn btn-primary"){{buttonText}}
