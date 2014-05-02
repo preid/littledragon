@@ -1,5 +1,5 @@
 var Sequelize = require( "sequelize" );
-var sequelize = new Sequelize('littledragon', 'littledragon_app', 'letmein', {port: 5432, dialect: 'postgres', omitNull: true });
+var sequelize = new Sequelize('c9', 'preid', null,{host:'127.2.109.1', port: 3306, dialect: 'mysql', omitNull: true });
 
 var facility = sequelize.define( 'Facility', {
     id: {type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true},

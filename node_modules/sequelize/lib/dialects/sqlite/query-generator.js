@@ -1,9 +1,10 @@
-var Utils = require("../../utils")
-  , DataTypes = require("../../data-types")
-  , SqlString = require("../../sql-string")
+var Utils       = require("../../utils")
+  , DataTypes   = require("../../data-types")
+  , SqlString   = require("../../sql-string")
+  , Transaction = require("../../transaction")
 
 var MySqlQueryGenerator = Utils._.extend(
-  Utils._.clone(require("../query-generator")),
+  Utils._.clone(require("../abstract/query-generator")),
   Utils._.clone(require("../mysql/query-generator"))
 )
 
@@ -12,6 +13,7 @@ var hashToWhereConditions = MySqlQueryGenerator.hashToWhereConditions
 module.exports = (function() {
   var QueryGenerator = {
     options: {},
+    dialect: 'sqlite',
 
     addSchema: function(opts) {
       var tableName       = undefined
@@ -54,7 +56,7 @@ module.exports = (function() {
                     return Utils._.includes(definition, 'PRIMARY KEY')
                   }).length > 1)
         , attrStr     = []
-
+        , modifierLastIndex = -1
 
       for (var attr in attributes) {
         if (attributes.hasOwnProperty(attr)) {
@@ -62,6 +64,33 @@ module.exports = (function() {
 
           if (Utils._.includes(dataType, 'AUTOINCREMENT')) {
             dataType = dataType.replace(/BIGINT/, 'INTEGER')
+          }
+
+          // SQLite thinks that certain modifiers should come before the length declaration,
+          // whereas other dialects want them after, see http://www.sqlite.org/lang_createtable.html.
+
+          // Start by finding the index of the last of the modifiers
+          ['UNSIGNED', 'BINARY', 'ZEROFILL'].forEach(function (modifier) {
+            var tmpIndex = dataType.indexOf(modifier)
+
+            if (tmpIndex > modifierLastIndex) {
+              modifierLastIndex = tmpIndex + modifier.length
+            }
+          })
+          if (modifierLastIndex) {
+            // If a modifier was found, and a lenght declaration is given before the modifier, move the length
+            var length = dataType.match(/\(\s*\d+(\s*,\s*\d)?\s*\)/)
+            if (length && length.index < modifierLastIndex) {
+              dataType = dataType.replace(length[0], '')
+
+              // Since the legnth was placed before the modifier, removing the legnth has changed the index
+              if (length.index < modifierLastIndex) {
+                modifierLastIndex -= length[0].length
+              }
+              dataType = Utils._.insert(dataType, modifierLastIndex, length[0]).trim()
+            }
+
+            modifierLastIndex = -1
           }
 
           if (Utils._.includes(dataType, 'PRIMARY KEY') && needsMultiplePrimaryKeys) {
@@ -88,6 +117,10 @@ module.exports = (function() {
       return this.replaceBooleanDefaults(sql)
     },
 
+    booleanValue: function(value){
+      return !!value ? 1 : 0;
+    },
+
     dropTableQuery: function(tableName, options) {
       options = options || {}
 
@@ -96,6 +129,20 @@ module.exports = (function() {
       return Utils._.template(query)({
         table: this.quoteIdentifier(tableName)
       })
+    },
+
+    addLimitAndOffset: function(options, query){
+      query = query || ""
+      if (options.offset && !options.limit) {
+        query += " LIMIT " + options.offset + ", " + 10000000000000;
+      } else if (options.limit && !(options.include && (options.limit === 1))) {
+        if (options.offset) {
+          query += " LIMIT " + options.offset + ", " + options.limit
+        } else {
+          query += " LIMIT " + options.limit
+        }
+      }
+      return query;
     },
 
     addColumnQuery: function() {
@@ -107,132 +154,31 @@ module.exports = (function() {
       return "SELECT name FROM sqlite_master WHERE type='table' and name!='sqlite_sequence';"
     },
 
-    insertQuery: function(tableName, attrValueHash) {
-      attrValueHash = Utils.removeNullValuesFromHash(attrValueHash, this.options.omitNull)
-
-      var query = "INSERT INTO <%= table %> (<%= attributes %>) VALUES (<%= values %>);";
-
-      var replacements  = {
-        table: this.quoteIdentifier(tableName),
-        attributes: Object.keys(attrValueHash).map(function(attr){return this.quoteIdentifier(attr)}.bind(this)).join(","),
-        values: Utils._.values(attrValueHash).map(function(value){
-          return this.escape(value)
-        }.bind(this)).join(",")
-      }
-
-      return Utils._.template(query)(replacements)
-    },
-
     bulkInsertQuery: function(tableName, attrValueHashes) {
       var query = "INSERT INTO <%= table %> (<%= attributes %>) VALUES <%= tuples %>;"
         , tuples = []
+        , allAttributes = []
 
-      Utils._.forEach(attrValueHashes, function(attrValueHash) {
+      Utils._.forEach(attrValueHashes, function(attrValueHash, i) {
+        Utils._.forEach(attrValueHash, function(value, key, hash) {
+          if (allAttributes.indexOf(key) === -1) allAttributes.push(key)
+        })
+      })
+
+      Utils._.forEach(attrValueHashes, function(attrValueHash, i) {
         tuples.push("(" +
-          Utils._.values(attrValueHash).map(function(value){
-            return this.escape(value)
+          allAttributes.map(function (key) {
+            return this.escape(attrValueHash[key])
           }.bind(this)).join(",") +
         ")")
       }.bind(this))
 
       var replacements  = {
         table: this.quoteIdentifier(tableName),
-        attributes: Object.keys(attrValueHashes[0]).map(function(attr){return this.quoteIdentifier(attr)}.bind(this)).join(","),
+        attributes: allAttributes.map(function(attr){
+                      return this.quoteIdentifier(attr)
+                    }.bind(this)).join(","),
         tuples: tuples
-      }
-
-      return Utils._.template(query)(replacements)
-    },
-
-    selectQuery: function(tableName, options, factory) {
-      var table = null,
-          joinQuery = ""
-
-      options            = options || {}
-      options.table      = table = Array.isArray(tableName) ? tableName.map(function(t) { return this.quoteIdentifier(t)}.bind(this)).join(", ") : this.quoteIdentifier(tableName)
-      options.attributes = options.attributes && options.attributes.map(function(attr){
-        if(Array.isArray(attr) && attr.length == 2) {
-          return [attr[0], this.quoteIdentifier(attr[1])].join(' as ')
-        } else {
-          return attr.indexOf(Utils.TICK_CHAR) < 0 ? this.quoteIdentifiers(attr) : attr
-        }
-      }.bind(this)).join(", ")
-      options.attributes = options.attributes || '*'
-
-      if (options.include) {
-        var optAttributes = options.attributes === '*' ? [options.table + '.*'] : [options.attributes]
-
-        options.include.forEach(function(include) {
-          var attributes = Object.keys(include.daoFactory.attributes).map(function(attr) {
-            return this.quoteIdentifier(include.as) + "." + this.quoteIdentifier(attr) + " AS " + this.quoteIdentifier(include.as + "." + attr)
-          }.bind(this))
-
-          optAttributes = optAttributes.concat(attributes)
-
-          var table = include.daoFactory.tableName
-          var as = include.as
-          var tableLeft = ((include.association.associationType === 'BelongsTo') ? include.as : tableName)
-          var attrLeft = 'id'
-          var tableRight = ((include.association.associationType === 'BelongsTo') ? tableName : include.as)
-          var attrRight = include.association.identifier
-          joinQuery += " LEFT OUTER JOIN " + this.quoteIdentifier(table) + " AS " + this.quoteIdentifier(as) + " ON " + this.quoteIdentifier(tableLeft) + "." + this.quoteIdentifier(attrLeft) + " = " + this.quoteIdentifier(tableRight) + "." + this.quoteIdentifier(attrRight) + ""
-
-        }.bind(this))
-
-        options.attributes = optAttributes.join(', ')
-      }
-
-      var query = "SELECT " + options.attributes + " FROM " + options.table
-      query += joinQuery
-
-      if (options.hasOwnProperty('where')) {
-        options.where = this.getWhereConditions(options.where, tableName, factory)
-        query += " WHERE " + options.where
-      }
-
-      if (options.group) {
-        options.group = Array.isArray(options.group) ? options.group.map(function(t) { return this.quoteIdentifiers(t)}.bind(this)).join(', ') : qa(options.group)
-        query += " GROUP BY " + options.group
-      }
-
-      if (options.order) {
-        query += " ORDER BY " + options.order
-      }
-
-      if (options.offset && !options.limit) {
-        /*
-         * If no limit is defined, our best bet is to use the max number of rows in a table. From the SQLite docs:
-         * A 140 terabytes database can hold no more than approximately 1e+13 rows
-         */
-        query += " LIMIT " + options.offset + ", " + 10000000000000;
-      } else if (options.limit && !(options.include && (options.limit === 1))) {
-        if (options.offset) {
-          query += " LIMIT " + options.offset + ", " + options.limit
-        } else {
-          query += " LIMIT " + options.limit
-        }
-      }
-
-      query += ";"
-
-      return query
-    },
-
-    updateQuery: function(tableName, attrValueHash, where, options) {
-      attrValueHash = Utils.removeNullValuesFromHash(attrValueHash, this.options.omitNull, options)
-
-      var query  = "UPDATE <%= table %> SET <%= values %> WHERE <%= where %>"
-        , values = []
-
-      for (var key in attrValueHash) {
-        var value = attrValueHash[key]
-        values.push(this.quoteIdentifier(key) + "=" + this.escape(value))
-      }
-
-      var replacements = {
-        table: this.quoteIdentifier(tableName),
-        values: values.join(","),
-        where: this.getWhereConditions(where)
       }
 
       return Utils._.template(query)(replacements)
@@ -244,26 +190,6 @@ module.exports = (function() {
       var query = "DELETE FROM <%= table %> WHERE <%= where %>"
       var replacements = {
         table: this.quoteIdentifier(tableName),
-        where: this.getWhereConditions(where)
-      }
-
-      return Utils._.template(query)(replacements)
-    },
-
-    incrementQuery: function(tableName, attrValueHash, where) {
-      attrValueHash = Utils.removeNullValuesFromHash(attrValueHash, this.options.omitNull)
-
-      var query  = "UPDATE <%= table %> SET <%= values %> WHERE <%= where %>"
-        , values = []
-
-      for (var key in attrValueHash) {
-        var value = attrValueHash[key]
-        values.push(this.quoteIdentifier(key) + "=" + this.quoteIdentifier(key) + "+ " + this.escape(value))
-      }
-
-      var replacements = {
-        table: this.quoteIdentifier(tableName),
-        values: values.join(","),
         where: this.getWhereConditions(where)
       }
 
@@ -292,7 +218,10 @@ module.exports = (function() {
             template += " NOT NULL"
           }
 
-          if (dataType.defaultValue !== undefined) {
+          if (Utils.defaultValueSchemable(dataType.defaultValue)) {
+            // TODO thoroughly check that DataTypes.NOW will properly
+            // get populated on all databases as DEFAULT value
+            // i.e. mysql requires: DEFAULT CURRENT_TIMESTAMP
             template += " DEFAULT <%= defaultValue %>"
             replacements.defaultValue = this.escape(dataType.defaultValue)
           }
@@ -356,32 +285,6 @@ module.exports = (function() {
       return fields
     },
 
-    enableForeignKeyConstraintsQuery: function() {
-      var sql = "PRAGMA foreign_keys = ON;"
-      return Utils._.template(sql, {})
-    },
-
-    disableForeignKeyConstraintsQuery: function() {
-      var sql = "PRAGMA foreign_keys = OFF;"
-      return Utils._.template(sql, {})
-    },
-
-    hashToWhereConditions: function(hash) {
-      for (var key in hash) {
-        if (hash.hasOwnProperty(key)) {
-          var value = hash[key]
-
-          if (typeof value === 'boolean') {
-            value = !!value ? 1 : 0
-          }
-
-          hash[key] = value
-        }
-      }
-
-      return hashToWhereConditions.call(this, hash).replace(/\\'/g, "''");
-    },
-
     showIndexQuery: function(tableName) {
       var sql = "PRAGMA INDEX_LIST('<%= tableName %>')"
       return Utils._.template(sql, { tableName: tableName })
@@ -405,11 +308,6 @@ module.exports = (function() {
 
       var sql = "PRAGMA TABLE_INFO('<%= tableName %>');"
       return Utils._.template(sql, { tableName: this.addSchema({tableName: tableName, options: options})})
-    },
-
-    renameTableQuery: function(before, after) {
-      var query = "ALTER TABLE `<%= before %>` RENAME TO `<%= after %>`;"
-      return Utils._.template(query, { before: before, after: after })
     },
 
     removeColumnQuery: function(tableName, attributes) {
@@ -455,11 +353,35 @@ module.exports = (function() {
       })
     },
 
+    startTransactionQuery: function(options) {
+      return "BEGIN TRANSACTION;"
+    },
+
+    setAutocommitQuery: function(value) {
+      return "-- SQLite does not support SET autocommit."
+    },
+
+    setIsolationLevelQuery: function(value) {
+      switch (value) {
+        case Transaction.ISOLATION_LEVELS.REPEATABLE_READ:
+          return "-- SQLite is not able to choose the isolation level REPEATABLE READ."
+        case Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED:
+          return "PRAGMA read_uncommitted = ON;"
+        case Transaction.ISOLATION_LEVELS.READ_COMMITTED:
+          return "PRAGMA read_uncommitted = OFF;"
+        case Transaction.ISOLATION_LEVELS.SERIALIZABLE:
+          return "-- SQLite's default isolation level is SERIALIZABLE. Nothing to do."
+        default:
+          throw new Error('Unknown isolation level: ' + value)
+      }
+    },
+
     replaceBooleanDefaults: function(sql) {
       return sql.replace(/DEFAULT '?false'?/g, "DEFAULT 0").replace(/DEFAULT '?true'?/g, "DEFAULT 1")
     },
 
     quoteIdentifier: function(identifier, force) {
+      if (identifier === '*') return identifier
       return Utils.addTicks(identifier, "`")
     },
 
@@ -467,10 +389,20 @@ module.exports = (function() {
       return identifiers.split('.').map(function(v) { return this.quoteIdentifier(v, force) }.bind(this)).join('.')
     },
 
-    escape: function(value) {
-      return SqlString.escape(value, false, null, "sqlite")
-    }
+    quoteTable: function(table) {
+      return this.quoteIdentifier(table)
+    },
 
+        /**
+     * Generates an SQL query that returns all foreign keys of a table.
+     *
+     * @param  {String} tableName  The name of the table.
+     * @param  {String} schemaName The name of the schema.
+     * @return {String}            The generated sql query.
+     */
+    getForeignKeysQuery: function(tableName, schemaName) {
+      return "PRAGMA foreign_key_list(\"" + tableName + "\")"
+    }
   }
 
   return Utils._.extend({}, MySqlQueryGenerator, QueryGenerator)

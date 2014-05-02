@@ -36,9 +36,9 @@ var render = function ( req, res )
 {
     return function ( err, data )
     {
-        if ( null != err )
+        if ( null !== err )
         {
-            res.status( 500 ).send( err.message )
+            res.status( 500 ).send( err.message ); 
         }
         else
         {
